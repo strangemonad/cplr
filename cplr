@@ -1,0 +1,49 @@
+#!/bin/bash
+
+# ..
+#
+#    "You take the blue pill - the story ends, you wake up in your bed and 
+#    believe whatever you want to believe. You take the red pill - you stay in 
+#    Wonderland and I show you how deep the rabbit-hole goes." 
+#    *Morpheus*
+#
+#
+# Our exploration begins top-down. We will never be very far from the Ada 
+# compiler example; never too deep into theory.
+#
+# The main entry point is nothing more than a simple wrapper script. The wrapper 
+# is only responsible for setting up the environment so that all the CPLR 
+# libraries are found by the Python interpreter and handing execution off to the 
+# CPLR driver.
+#
+# **Design:**
+#
+# - The cplr script is the only component that is concerned with launching the 
+#   compiler.
+# - The cplr wrapper script is the only component that has a UNIX bias.
+# - There is the added benefit that Python caches the byte-code of modules after
+#   they have been interpreted providing faster subsequent startup time. This 
+#   would not happen if we invoke the main driver directly as a Python script.
+#
+# Since the rest of the system is written in Python when porting CPLR to another 
+# platform the only thing that needs to be changed is this wrapper script. 
+
+cd `dirname $0`
+export PYTHONPATH=./src/lib:$PYTHONPATH
+
+# It may be useful for debugging or deployment purposes to control how the
+# python interpreter is invoked. Options can be set in the PYTHON_OPTS
+# environment variable or hard coded in this script for deployment.
+
+PYTHON_OPTS="$PYTHON_OPTS "
+
+
+# By default CPLR prevents all python exceptions from reaching the interpreter
+# and instead prints error summaries when unexpected situations arise. When
+# debugging CPLR it may be useful to get extra information about abnormal
+# behavior and raised exceptions. Simply set the the CPLR_DEBUG environment
+# variable to any value, for example:
+# ``export CPLR_DEBUG=1``
+
+
+python $PYTHON_OPTS src/apps/compiler/driver.py $*

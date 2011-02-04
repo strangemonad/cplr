@@ -1,0 +1,26 @@
+<name> <name> <suffix>
+| <suffix>
+
+<suffix> <simple_name>
+| <selector>
+| <attribute>
+| <aggregate>
+| <agg1>
+
+<simple_name> identifier
+
+<selector> . identifier
+| . string_literal
+| . all
+
+<attribute> ' identifier
+
+<agg1> ' <aggregate>
+
+<aggregate> ( <agg_component_sequence> )
+
+<agg_component_sequence> <agg_component_sequence> , <agg_component>
+| <agg_component>
+
+<agg_component> <choice_sequence> => <expression>
+| <expression>

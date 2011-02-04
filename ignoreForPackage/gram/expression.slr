@@ -1,0 +1,55 @@
+<expression> <expression2> range <>
+| <expression2> range <expression2>
+| <expression2>
+
+<expression2> <expression1> .. <expression1>
+| <expression1>
+
+<expression1> <expression1> <logical_operator> <relation>
+| <relation>
+
+<relation> <relation> <relation_operator> <simple_expression>
+| <simple_expression>
+
+
+<simple_expression> <simple_expression> <adding_operator> <term>
+| <adding_operator> <term>
+| <term>
+
+<term> <term> <multiplying_operator> <factor>
+| <factor>
+
+<factor> <primary> ** <primary>
+| not <primary>
+| abs <primary>
+| <primary>
+
+<primary> <name>
+| integer_literal
+| float_literal
+| string_literal
+| null
+| <allocator>
+
+<allocator> new <name>
+
+<logical_operator> and
+| or
+| and then
+| or else
+
+<relation_operator> =
+| /=
+| <
+| >
+| <=
+| >=
+
+<adding_operator> +
+| -
+| &
+
+<multiplying_operator> *
+| /
+| mod
+

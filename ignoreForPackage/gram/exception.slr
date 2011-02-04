@@ -1,0 +1,9 @@
+<exception_part_option> exception <exception_handler_sequence>
+|
+
+<exception_declaration> <identifier_sequence> : exception ;
+
+<exception_handler_sequence> <exception_handler_sequence> <exception_handler>
+| <exception_handler>
+
+<exception_handler> <case_alternative>

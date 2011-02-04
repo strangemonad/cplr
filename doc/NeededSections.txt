@@ -1,0 +1,16 @@
+
+Document Generation
+===================
+XXX
+doc/cplrdoc
+PyLit
+DocUtils
+
+
+Infrastructure
+==============
+XXX
+paths.py
+run script
+
+a note about tests - they are test suites, the numbers are misleading.

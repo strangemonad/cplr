@@ -1,0 +1,30 @@
+<S> bof <comp> eof
+<comp> <comp> <compunit>
+|
+
+<compunit> <packdecl>
+| <packbody>
+| <subprogbody>
+| <pragma>
+
+<packdecl> PACKAGE id IS <decls> <private_opt> END <id_opt> ;
+
+<id_opt> id
+|
+
+<decls> <decls> <decl>
+|
+
+<decl> <obj_decl>
+
+<obj_decl> <ids> : <const_opt> <expr> <init_opt> ;
+
+<ids> <ids> , id
+| id
+<const_opt> CONSTANT
+|
+
+<init_opt> := <expr>
+|
+
+<expr> id

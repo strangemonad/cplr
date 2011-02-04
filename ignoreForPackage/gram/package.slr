@@ -1,0 +1,10 @@
+<package_declaration> package identifier is <declaration_list> <private_part_option> end <identifier_option> ;
+| package identifier is <declaration_list> <private_part_option> body <declaration_list> <package_statements_option> <exception_part_option> end <identifier_option> ;
+
+<package_body> package body identifier is <declaration_list> <package_statements_option> <exception_part_option> end <identifier_option> ;
+
+<private_part_option> private <declaration_list>
+|
+
+<package_statements_option> begin <statement_sequence>
+|

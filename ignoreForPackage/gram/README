@@ -1,0 +1,22 @@
+catit puts the subgrammars into adacs.slr and adacs.ilalr
+slrit runs slr on adacs.slr
+lalrit run ilalr on adacs.ilalr
+
+The grammar is far more relaxed than required. That is, it will accept 
+constructs which some may not consider grammatically corrert. 
+For instance, expression are allowed on the left hand side of an assignment.
+
+
+In object declarations, which types can be anonymous (arrays can for sure).
+
+
+The grammar should be Ada/CS complete. Not Ada83 (a few things are missing, 
+named parameters in a subprogram call for instance).
+
+The names of non-terminals are poor and will be cleaned up.
+
+
+<name> covers: 
+
+logical operators mixing not enforced.
+unary adding op not in.

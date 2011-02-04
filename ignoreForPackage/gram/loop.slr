@@ -1,0 +1,12 @@
+<loop_statement> <statement_identifier_option> <loop> <identifier_option> ;
+
+<loop> <iteration_scheme_option> loop <statement_sequence> end loop
+
+<iteration_scheme_option> <iteration_scheme>
+|
+
+<iteration_scheme> while <expression>
+| for identifier in <reverse_option> <expression>
+
+<reverse_option> reverse
+|

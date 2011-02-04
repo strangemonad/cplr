@@ -1,0 +1,7 @@
+<block_statement> <statement_identifier_option> <block> <identifier_option> ;
+
+<block> <declarative_part_option> begin <statement_sequence> <exception_part_option> end
+
+<declarative_part_option> declare <declaration_list>
+|
+

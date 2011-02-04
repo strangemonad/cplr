@@ -1,0 +1,9 @@
+<compilation> BOF <compilation_unit_sequence> EOF
+
+<compilation_unit_sequence> <compilation_unit_sequence> <compilation_unit>
+| <compilation_unit>
+
+<compilation_unit> <package_declaration>
+| <package_body>
+| <subprogram_body>
+| <pragma>

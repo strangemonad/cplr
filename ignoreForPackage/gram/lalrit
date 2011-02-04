@@ -1,0 +1,2 @@
+#!/bin/sh
+ilalr $* -b adacs.ilalr

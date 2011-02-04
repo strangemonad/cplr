@@ -1,0 +1,2 @@
+<subtype_declaration> subtype identifier is <expression> ;
+

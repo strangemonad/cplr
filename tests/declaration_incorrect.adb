@@ -1,0 +1,6 @@
+--
+
+procedure DECLARATION_INCORRECT is
+begin
+	null;
+end DECLARATION_INCORRECT;

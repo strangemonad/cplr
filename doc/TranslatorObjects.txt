@@ -1,0 +1,11 @@
+XXX info about the translator object pattern, command pattern and the signature of callables.
+
+implements __call__(source)
+
+source -> result x issues
+
+result is an object that can be printed.
+
+XXX docs this needs to be beefed up for the master document.
+
+return None on failed translation

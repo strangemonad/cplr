@@ -1,0 +1,15 @@
+TODO:
+All tests are incomplete, some more than others.
+Features in need of tests are:
+function (incorrect)
+package
+pragma
+array (incorrect)
+record (incorrect)
+access
+derived
+subtype
+exception
+attributes
+aggregates
+variable denotation (might be covered by other tests)

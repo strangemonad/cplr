@@ -1,0 +1,22 @@
+<declaration_list> <declaration_list> <declaration>
+|
+
+<declaration> <type_declaration>
+| <subtype_declaration>
+| <object_declaration>
+| <subprogram_declaration>
+| <exception_declaration>
+| <subprogram_body>
+| <use_clause>
+| <pragma>
+
+<object_declaration> <identifier_sequence> : <constant_option> <expression> <initialization_option> ;
+| <identifier_sequence> : <constant_option> <array_type_definition> <initialization_option> ;
+
+<constant_option> constant
+|
+
+<use_clause> use <expression_list> ;
+
+<expression_list> <expression_list> , <expression>
+| <expression>

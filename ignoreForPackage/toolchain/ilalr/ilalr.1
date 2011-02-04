@@ -1,0 +1,330 @@
+
+
+
+ILALR(1L)              LOCAL USER COMMANDS              ILALR(1L)
+
+
+
+NAME
+     ilalr - interactive LALR(1) parser generator
+
+SYNOPSIS
+     ilalr [ -b _f_i_l_e_n_a_m_e ]
+
+DESCRIPTION
+     _i_l_a_l_r generates LALR(1) parser tables which can be  mechani-
+     cally  transformed  into a parser module.  The parser module
+     is a C source code file which can be included in a compiler.
+
+     _i_l_a_l_r is intended to be used interactively.  But, for  those
+     who  wish,  the  `-b' flag forces non-interactive operation.
+     In this case, the name of a file is supplied as an argument.
+     The  file  should  contain production rules and commands, as
+     described below.  At the end of input from  the  file,  LALR
+     parse  tables are output to a file whose name is constructed
+     by appending `.tbl' to the name of the input file.  When run
+     interactively, _i_l_a_l_r does not output parse tables unless the
+     %write command is used.
+
+ILALR COMMANDS
+     All commands except the two commands for adding a  new  rule
+     to  the  grammar  begin  with a percent symbol.  The percent
+     symbol must be the first character on a line.
+
+     %quit
+          terminates the program.  The user is  queried  if  ter-
+          minating   the  program  would  entail  discarding  any
+          changes made to the grammar.
+
+     lhs  rhs1  rhs2  ...
+          adds the production rule "lhs ::= rhs1 rhs2 ..." to the
+          grammar.   The  token  names,  "lhs", "rhs1", etc., are
+          composed of sequences of non-white-space ASCII  charac-
+          ters.   There  is one exception: the "lhs" token cannot
+          be written as a  single  vertical  bar  character.   It
+          would also be advisable to avoid starting a symbol with
+          a decimal  digit  character  (because  such  names  may
+          interfere with use of the "%token" directive).
+
+     |  rhs1  rhs2  ...
+          adds the production rule "lhs ::= rhs1 rhs2 ..." to the
+          grammar, where "lhs" denotes the same token as was used
+          on the lefthand-side of the previous rule to be added.
+
+     %delete lhs n
+          deletes the n-th production rule that has "lhs" for its
+          lefthand-side from the grammar.  If "n" is omitted, the
+          first rule with the given lefthand-side is deleted.
+
+     %include filename
+
+
+
+Sun Release 3.2  Last change: 14 September 1987                 1
+
+
+
+
+
+
+ILALR(1L)              LOCAL USER COMMANDS              ILALR(1L)
+
+
+
+          reads the contents of the named  file,  as  though  the
+          lines contained in this file had been typed at the ter-
+          minal.  If _i_l_a_l_r is being executed  interactively,  the
+          contents  of the included file are echoed at the termi-
+          nal.  If the filename is omitted, the  name  `gram'  is
+          used.
+
+     %token t1 [ n1 ]  t2 [ n2 ] ...
+          defines the symbols, "t1", "t2", etc., as terminal sym-
+          bols  of  the grammar.  If the optional decimal numbers
+          "n1", "n2" are supplied, these are  used  to  associate
+          numbers  (in the range 1 to 255) with the terminal sym-
+          bols; otherwise a default  number  is  assigned.   (The
+          default  number  that  will  be  supplied  is the first
+          unused integer greater than zero.) The numbering scheme
+          for tokens is important for interfacing the parser with
+          the lexical analyzer.  Note that it is illegal for  two
+          grammar symbols to have the same number.
+
+     %start t
+          defines token "t" as the start symbol (goal symbol)  of
+          the  grammar.   If  a  different  start symbol had been
+          defined previously, a warning message is output.
+
+     %start
+          prints the name of the current start symbol.
+
+     %save filename
+          saves the current set of production rules, the  defined
+          terminal  tokens,  and  the defined start symbol in the
+          named file.  The file is in a  form  suitable  for  re-
+          input  by  the  "%include" command.  If the filename is
+          omitted, the name `gram' is used.
+
+     %check
+          checks the grammar to verify that all  rules  and  non-
+          terminal  symbols  can  actually be used in derivations
+          that begin with the start symbol.  (A failure  of  this
+          check  suggests  that the grammar is incomplete or that
+          the  symbol  on  the  LHS  of  some   rule   has   been
+          misspelled.)
+
+     %write filename
+          creates LALR parser tables and stores them in  a  file.
+          The  name  of  the  file  always has the suffix ".tbl".
+          This suffix will be appended to the  supplied  filename
+          if it is not already present.  If the filename is omit-
+          ted, the name `lalr.tbl' is used.  (The %write  command
+          also performs the same checking as %check.)
+
+     %read filename
+          re-loads a grammar  from  a  file  that  contains  LALR
+
+
+
+Sun Release 3.2  Last change: 14 September 1987                 2
+
+
+
+
+
+
+ILALR(1L)              LOCAL USER COMMANDS              ILALR(1L)
+
+
+
+          parser  tables, as created by the "%write" command.  If
+          the filename is omitted, the name `lalr.tbl'  is  used.
+          This  command  can  only  be used before new production
+          rules are typed.
+
+     %print rules
+          lists all the production rules that  are  currently  in
+          the  grammar.  %print rules t lists all rules that have
+          symbol "t" on their lefthand side.
+
+     %print tokens
+          lists all grammar symbols that are used in the  current
+          grammar.
+
+     %print uses t
+          lists all rules that contain  symbol  "t"  anywhere  in
+          their righthand sides.
+
+     %print null
+          lists all grammar symbols that are nullable.  A  symbol
+          X is nullable if there is a derivation chain: X => Y =>
+          ... => empty.
+
+     %print starters
+          lists the starter symbols for all grammar  symbols.   A
+          symbol  Y  is  a  starter  symbol  for  X if there is a
+          derivation chain: X => alpha => beta => ... => Y gamma.
+
+     %print states
+          generates a  (long)  listing  of  the  LALR  recognizer
+          states.   The  listing is not likely to be intelligible
+          to the average user of this program.
+
+     %print
+          repeats the most recently  executed  form  of  "%print"
+          command.   For  example,  if `%pr uses A' was used most
+          recently, then all  rules  using  `A'  will  be  listed
+          again.
+
+     %clear
+          discards all rules, all terminal token definitions, the
+          start   symbol   specifiaction,   and   completely  re-
+          initializes _i_l_a_l_r.
+
+     %comment
+          causes the entire line to  be  ignored.   This  feature
+          enables  comments  to  be added to files intended to be
+          read by the "%include" command.
+
+     The percent character that prefixes all the commands MUST be
+     typed  as the first character on an input line.  Any command
+     or keyword option of a command may be abbreviated,  provided
+
+
+
+Sun Release 3.2  Last change: 14 September 1987                 3
+
+
+
+
+
+
+ILALR(1L)              LOCAL USER COMMANDS              ILALR(1L)
+
+
+
+     that  the  abbreviation  is  unambiguous.  For example, "%pr
+     rul" is a valid way of requesting a listing of  the  current
+     grammar.
+
+EXAMPLE
+     The following sequence of lines  would  form  an  acceptable
+     input to _i_l_a_l_r.
+
+               A    BLIST  C
+               BLIST     BLIST ; bb
+               C    cc
+               BLIST     bb
+               C
+               %del C 1
+               %token bb 5 ; 27
+               %write gram
+               %quit
+
+     The final grammar contained four rules.  The  terminal  sym-
+     bols  of this grammar are `bb' and `;' only.  (The rule that
+     used `cc' was deleted.) A file called "gram.tbl", containing
+     the  parser tables, was created.  This file can be processed
+     by the program named _m_k_p_a_r_s_e_r.
+
+INTERFACING DETAILS
+     _m_k_p_a_r_s_e_r creates a parser from the tables output from _i_l_a_l_r.
+     This  parser  is  a C function named "yyparse".  It calls an
+     external function named "scan" to obtain input tokens.  Each
+     kind  of token has a number.  Both "scan" and "yyparse" must
+     agree on the numbering scheme used for tokens.   The  %token
+     command of _i_l_a_l_r should be used to force the desired number-
+     ing scheme.  When "scan" reaches the end of  its  input  and
+     has  no more tokens to return, it should return a value of 0
+     or any negative integer.  The C preprocessor  constant,  EOF
+     (defined in <stdio.h>), is a suitable value to return.
+
+SEE ALSO
+     lex(1), yacc(1), mkscan(1L), mkparser(1L).
+
+BUGS
+     Bugs should be reported to "nigelh@csr".
+
+     Known deficiencies include the observation that a  few  more
+     commands  would  be  desirable,  e.g., a "%undo" to undo the
+     last addition or deletion of a rule.
+
+     Much better diagnostic output when a non-LALR(1) grammar  is
+     input is definitely needed.
+
+     Perhaps _i_l_a_l_r should support the _y_a_c_c input style  for  pro-
+     duction rules.
+
+
+
+
+Sun Release 3.2  Last change: 14 September 1987                 4
+
+
+
+
+
+
+ILALR(1L)              LOCAL USER COMMANDS              ILALR(1L)
+
+
+
+AUTHOR
+     R. Nigel Horspool, Department of Computer  Science,  Univer-
+     sity of Victoria.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Sun Release 3.2  Last change: 14 September 1987                 5
+
+
+

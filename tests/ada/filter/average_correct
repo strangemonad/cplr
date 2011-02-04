@@ -1,0 +1,3 @@
+-- Comments should be filtered out of the resulting token stream...
+
+And -- other tokens like reserved words shouldn't.

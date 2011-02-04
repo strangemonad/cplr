@@ -1,0 +1,2 @@
+#!/bin/sh
+slr -c $* adacs.slr

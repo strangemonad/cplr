@@ -1,0 +1,28 @@
+-- Don't touch the spacing in the file.
+-- It contains various invisible format effectors.
+
+-- Refer to the Ada83 LRM sections 2.2 and 2.8
+
+-- An average Ada83 comment - ending in a newline.
+
+-- More than one comment -- On a line is still only one comment.
+
+
+	  -- Comments don't have to start at the beginning of the line.
+	  --The only thing is that they start with "--"
+
+-- They can also contain 	tabs.
+-- Or any character other than line ending format effectors for that matter.
+-- ABCDEFGHIJKLMNOPQRSTUVWXYZ
+-- abcdefghijklmnopqrstuvwxyz
+-- 0123456789
+-- " # & ' ( ) * + , - . / : ; < = > _ | 
+-- ! $ % ? @ [ \ ] ^ ` { } ~
+
+-- Comments can be empty
+--
+
+
+-- Comments are terminated by any of the following characters:
+-- newline
+-- return-- vertical tab----line feed--and the end of file

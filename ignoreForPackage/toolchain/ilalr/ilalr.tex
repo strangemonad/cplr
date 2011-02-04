@@ -1,0 +1,359 @@
+\documentstyle [11pt]{article}
+\topmargin -0.425 truein
+\textheight 8.6 truein
+\oddsidemargin 0.0 truein
+\evensidemargin 0.7 truein
+\textwidth 6.4 truein
+\title{Incremental Generation of LALR(1) Parsers}
+\author{R. Nigel Horspool \\
+Department of Computer Science \\ University of Victoria}
+\begin{document}
+\maketitle
+\begin{abstract}
+Implementation of a new compiler usually requires making
+frequent adjustments to grammar definitions.
+An incremental technique for updating the parser tables
+after a minor change to the grammar could potentially save
+much computational effort.
+More importantly, debugging a grammar is made easier if the
+grammar is re-checked for correctness after each small change
+to the grammar.
+\end{abstract}
+\section{Introduction}
+In the bottom-up approach to compiler construction,
+the implementer must create a grammar that accurately decribes
+the language to be translated.
+Almost always, the grammar will be mechanically processed
+by a {\em parser generator} to create a parser suitable for inclusion
+in the compiler.
+The form of the grammar is constrained by the class of grammars
+that the parser generator can accept and by the need to associate
+semantic actions with the production rules.
+Parser generators exist for various classes of grammars,
+including  LL(1), operator precedence,
+LR(0), SLR(1), LALR(1), and LR(1).
+
+When a compiler is being developed, the implementor can rarely
+use the grammar provided as part of the formal language description.
+Published grammars are usually designed for people to read and not
+for the implementor to use.
+The implementor is therefore likely to find that the grammar does not
+belong to the class of grammars accepted by the parser generator.
+Transformations on the grammar need to be performed, while
+being careful not to change the language that it accepts.
+Even after the grammar has been changed to satisfy the
+requirements of the parser generator,
+further changes are likely to be required when the implementor
+attempts to attach semantic actions to the production rules.
+The term {\em grammar debugging} is applied to the
+process of modifying a grammar to make it acceptable to
+the parser generator and to make it suitable for attaching
+semantic actions.
+
+Inexperienced compiler implementors tend to find grammar debugging
+a frustrating experience.
+Each time the implementor wishes to make a change, he/she must
+edit the file containing the grammar rules,
+save the file, and execute the parser generator.
+If, as is frequently the case, the parser generator reports
+a problem with the grammar, the implementor is likely to receive
+a cryptic message describing the problem.
+After puzzling over the message and deducing why the grammar might
+be unacceptable, the implementor must formulate
+a correction and repeat the edit/generation process.
+Many cycles of the debugging process may be required before
+the grammar is acceptable.
+
+As well as being frustrating, grammar debugging is wasteful
+of computational effort.
+If only a small change has been made to a grammar,
+the parser generator must still process the entire grammar
+and repeat almost all the work that it performed in the
+previous stage of the debugging cycle.
+To reduce the wastage of computational effort and to reduce
+user frustration, we propose a new compiler development tool.
+This tool is the {\em incremental parser generator}.
+The tool would be an interactive program which allows the
+user develop a grammar.
+After each change, the grammar is re-checked for acceptability.
+Instant user feedback to report problems with the grammar should
+eliminate much frustration and help the user see which production
+rules cause the difficulties.
+If the incremental parser generator retains the tables that it creates
+as part of the grammar analysis and can update, rather than re-build,
+these tables after a change to the grammar,
+it should also be possible to eliminate much wasted computational effort.
+\section{Designing an Incremental Parser Generator}
+
+There are two main design issues which must be decided
+before we can discuss the algorithms needed to implement an IPG.
+First, what quantum of change to the grammar should be input by
+the tool before the grammar is re-checked?
+At one extreme, we can recheck after the user adds or deletes
+single characters to or from the grammar specifications.
+At the other extreme, we can wait until the user has typed all
+the desired changes before re-checking.
+Second, what grammar class should the tool accept?
+By choosing a small class, such as the class of regular grammars,
+we would make the implementation of the tool easy
+but the tool would not be useful to compiler writers.
+By choosing a large class, such as LR(1), we might make the
+update algorithms too complicated to implement easily.
+Complicated update algorithms may also be too slow to give
+the user sufficiently fast responses to problems.
+
+We decided that the unit of change should be
+a single production rule.
+After each addition of a new rule and after each deletion of
+a rule, the grammar is re-checked for acceptability.
+A change to a rule is considered as a deletion of the original rule
+followed by an insertion of the corrected rule.
+If the unit of change were to be made any smaller, we would be
+faced with the problem of handling incomplete production rules.
+Larger units of change would simply delay reporting possible
+problems to the user.
+But, if we permit the user to add or delete rules in any order,
+we must be prepared to (temporarily) accept incomplete grammars.
+One symptom of an incomplete grammar is that some production rules
+and non-terminal symbols may be inaccessible.
+For example, if we have entered only the following two rules
+\begin{quote}
+\tt
+S\ \ ::=\ \ begin  statement\_list  end
+
+assignment\ \ ::=\ \ variable := expression
+\end{quote}
+then the second rule cannot be used in any derivation that starts
+from (what is apparently) the goal symbol {\em S}.
+A second symptom may be that some non-terminals cannot generate
+sentential forms that consist only of terminal symbols.
+Such non-terminals are called {\em useless}.
+For example, we might add the rule
+\begin{quote}
+\tt statement\_list\ \ ::=\ \ statement\_list ; statement
+\end{quote}
+to the grammar, above.
+Then, even if we temporarily consider {\em statement} to be
+a terminal symbol, the grammar is incapable of deriving
+sentential forms free that are from the non-terminal symbol
+{\em statement\_list}.
+If we wish to allow rules to be entered in any order and to check
+the grammar after each addition, it is clear that a relaxed form
+of checking must be employed.
+Ignoring the rules for inaccessible or useless non-terminals
+would be an unsatisfactory approach.
+The user could choose to enter rules in such an order that almost
+the entire grammar may remain inaccessible or useless until
+the last rule is defined.
+
+Current parser generators accept either the LL(1) class of grammars
+or one of the LR grammar classes.
+We have chosen the LALR(1) class of grammars because of its power -- it
+contains the LL(1), LR(0) and SLR(1) classes.
+While it is a smaller class than the LR(1) class, the generated parser
+usually has far fewer states and therefore requires much less memory
+for its implementation.
+It also appears to be the case that LR(1) parsing tables require
+much more work to update after a small change to the grammar.
+\section{Defining the Problem}
+
+It should be possible to analyze grammars which have not been completely
+specified.
+Indeed, the start symbol of the grammar may be one aspect of the
+grammar that remains undefined until late in the specification process.
+It is therefore appropriate to add a goal symbol of our own, $S^*$,
+and to add extra rules of the form
+\begin{quote}
+\tt
+$S^*$  ::=  N  $\dashv_N$
+\end{quote}
+for each non-terminal symbol N.
+That, of course, begs the question ``how do we know which symbols
+are the non-terminal symbols?''
+A reasonable answer would be to assume that every symbol encountered
+in the grammar so far is a terminal symbol, unless the symbol appears
+on the left-hand side of some rule.
+The alternative approach would be to require that the user must declare
+all symbols as terminal or non-terminal before they can be used.
+But, just as declarations of variables are usually not mandatory in
+programming languages that are entered and executed interactively,
+we prefer terminal/non-terminal definitions to be optional.
+
+The addition of the extra rules also eliminates the problem of unreachable
+non-terminal symbols or rules.
+Everything in the grammar would be reachable from the goal symbol $S^*$.
+Of course, after the user has specified the actual start symbol and claims
+to have completed the grammar, we should perform a check for unreachable
+or useless rules and symbols.
+
+While a grammar is under development, it is natural for some parts of
+the grammar to be incomplete.
+Therefore, we should not complain about {\em useless} productions.
+until the user claims to have completed the grammar.
+For example, the user may have entered the rule
+\begin{quote}
+\tt
+L  ::=  L  ,  x
+\end{quote}
+and no others with $L$ as a left-hand side.
+It is clear that $L$ is a non-terminal symbol, but it is also useless.
+We can circumvent this difficulty by assuming that while the grammar is
+in an incomplete state, it is a grammar for sentential forms --
+{\em not} a grammar for sentences in the language.
+For example, with the rule for $L$, above, the language includes the
+sentential forms
+\begin{quote}
+{\tt
+L $\dashv_L$\ \ \ \ L , x $\dashv_L$\ \ \ \ L , x , x $\dashv_L$\ \ \ \ }
+... etc.
+\end{quote}
+where $\dashv_L$ is the automatically generated end-of-sentence symbol.
+
+When rules are missing from a grammar, it is impossible to know for certain
+which symbols are nullable (can produce the empty sentence in some
+derivation chain).
+A symbol $X$ may appear to be non-nullable, but the addition of the rule
+\begin{quote}
+\tt
+X  ::=  <empty>
+\end{quote}
+(or of a rule where all symbols on the right-hand side are themselves nullable)
+would immediately change the status of $X$.
+On the assumption that most grammar symbols are intended to be
+non-nullable,
+it would seem best to assume that symbols are non-nullable
+until a derivation
+to the empty string becomes possible using rules in the grammar.
+This would also prevent spurious error messages about ambiguities in the
+grammar being generated.
+
+\section{Incremental LALR Algorithms}
+
+We consider that there are four main components to an algorithm for
+creating a LALR(1) parser.
+First, we need to know which symbols are nullable.
+We therefore define the set, NULL, as
+\{ $X | X \stackrel{*}{\Rightarrow} \epsilon$ \}.
+which contains those symbols which are nullable.
+Second, we need to know the START sets for all symbols,
+where the $START(X)$ is defined as
+\{ $Y | X \stackrel{*}{\Rightarrow} Y \alpha$ \}.
+The nullability information is needed to compute the START sets.
+Third, we need the LR(0) sets of items for the grammar.
+Fourth, we need the LALR(1) lookahead sets that are associated
+with the LR(0) items.
+The START sets are needed for computing the lookahead sets.
+Incremental versions of each of these four components would give us
+a complete algorithm that is itself incremental.
+
+When one new rule is added to a grammar, what properties of the
+grammar and of the LALR(1) recognizer can change?
+The following sequence of lemmas partially answers that question.
+\newtheorem{lemma}{Lemma}
+\begin{lemma}
+Addition of a rule can require addition of elements to the NULL set,
+but never their removal.
+\end{lemma}
+\begin{lemma}
+Addition of a rule can require the addition of elements to FIRST sets
+but never their removal.
+\end{lemma}
+\begin{lemma}
+Addition of a rule can require the addition of items to states
+in the LR(0) recognizer, but never their deletion.
+\end{lemma}
+\begin{lemma}
+Addition of a rule can require the addition of new states to the
+LR(0) recognizer, but never their deletion.
+\end{lemma}
+\begin{lemma}
+Addition of a rule can require the addition of elements to
+LALR(1) lookahead sets, but never their removal.
+\end{lemma}
+The truth of lemmas 3 through 5 depends on how we make states in the
+original LR(0) recognizer correspond to states in the recognizer for
+the augmented grammar.
+But a correspondence can be made so that these lemmas hold.
+
+The additive nature of the nullability, START set, item list,
+LR(0) state,
+and of the lookahead set information implies that iterative algorithms
+are highly suitable.
+If only a few states in the LR(0) recognizer are affected by the
+addition of a new rule to the grammar, we would exepect that
+an iteration that begins from the previous recognizer state
+would converge rapidly.
+     
+The other form of change that we wish to allow, deletion of a
+rule from the grammar, is less amenable to an iterative approach.
+
+\section{Algorithms for Rule Addition}
+
+Suppose that we wish to add the new rule
+\begin{quote}
+\tt
+X  ::=  $\alpha$
+\end{quote}
+to the grammar $G$ and thus create the new grammar $G'$.
+We will use $NULL$ to refer to the set of nullable symbols in $G$
+and $NULL'$ for the corresponding set in $G'$, etc.
+
+\subsection{The Set of Nullable Symbols}
+
+The following iterative algorithm uses a worklist of grammar rules,
+which is initially empty.
+
+\begin{tabbing}
+\ \ \ \ \ \ \ \ \=\ \ \ \ \=\ \ \ \ \=\ \ \ \ \= \kill
+\>      add the new rule, $X$ ::= $\alpha$, to worklist\\
+\>      initialize $NULL'$ to the same set as $NULL$;\\
+\>      repeat\\
+\>\>       remove rule, $Y$ ::= $\beta$, from the worklist;\\
+\>\>       if all symbols of $\beta$ are elements of $NULL'$ then\\
+\>\>\>        add $Y$ to $NULL$, and\\
+\>\>\>        add all rules of the form\\
+\>\>\>\>         $Z$ ::= $\gamma Y \delta$, where $Z \not\in NULL'$,\\
+\>\>\>\>         to the worklist\\
+\>      until the worklist is empty;
+\end{tabbing}
+
+\subsection{The START Sets}
+
+If the nullability of X is not changed by the addition of the new
+rule to $G$, there is an efficient procedure for updating $START$ sets.
+Otherwise, we might as well recompute all the $START$ sets over again
+using the standard transitive closure algorithm.
+\begin{tabbing}
+\ \ \ \ \ \ \ \ \=\ \ \ \ \=\ \ \ \ \=\ \ \ \ \= \kill
+\>       if $X \in NULL' {\rm and} X \not\in NULL$ then\\
+\>\>         if $X$ is a new symbol (not referenced in $G$) then\\
+\>\>\>           $START'(X)$ := \{ $X$ \}\\
+\>\>         else\\
+\>\>\>           compute $NULL'$ using transitive closure algorithm\\
+\>       else\\
+\>\>         let $alpha$ be t[1], t[2], ... t[n] ($n > 0$)\\
+\>\>         if $X$ is a new symbol (not referenced in $G$) then\\
+\>\>\>           $START'(X)$ := \{ $X$ \}\\
+\>\>         else\\
+\>\>            $START'(X)$ := $START(X)$;\\
+\>\>         for $i$ such that $t[i]$ is a new symbol do\\
+\>\>\>           $START'( t[i] )$ := \{ $t[i]$ \};\\
+\>\>         i := 0;\\
+\>\>         repeat\\
+\>\>\>          i := i + 1;\\
+\>\>\>          $START'(X)$ := $START'(X) \cup START( t[i] )$;\\
+\>\>\>          if t[i] $\not\in NULL'$ then\\
+\>\>\>\>            i := n;\\
+\>\>         until i $=$ n;\\
+\>\>         for all symbols $Y$ do\\
+\>\>\>          if $X \in START(Y)$ then\\
+\>\>\>\>           $START'(Y)$ := $START(Y) \cup START(X)$\\
+\>\>\>          else\\
+\>\>\>\>           $START'(Y)$ := $START(Y)$
+\end{tabbing}
+
+\subsection{The LR(0) Sets of Items}
+
+\subsection{The LALR(1) Lookahead Sets}
+
+\end{document}

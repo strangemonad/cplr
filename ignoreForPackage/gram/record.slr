@@ -1,0 +1,20 @@
+<record_type_definition> record <component_sequence> end record
+
+<component_sequence> <component_sequence> <component>
+| <component>
+
+<component> <component_declaration>
+| <variant_declaration>
+| null ;
+
+<component_declaration> <object_declaration>
+
+<variant_declaration> case identifier is <variant_sequence> end case ;
+
+<variant_sequence> <variant_sequence> <variant>
+| <variant>
+
+<variant> when <choice_sequence> => <component_sequence>
+
+
+

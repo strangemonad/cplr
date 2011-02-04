@@ -1,0 +1,22 @@
+#!/bin/sh
+SLRS="compilation.slr
+array.slr
+block.slr
+case.slr
+declaration.slr
+exception.slr
+expression.slr
+if.slr
+loop.slr
+name.slr
+oddends.slr
+package.slr
+pragma.slr
+record.slr
+statement.slr
+subprogram.slr
+subtype.slr
+type.slr
+"
+cat $SLRS > adacs.slr
+cp adacs.slr adacs.ilalr

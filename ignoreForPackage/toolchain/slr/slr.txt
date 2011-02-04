@@ -1,0 +1,451 @@
+
+
+
+
+
+
+
+
+
+
+                 An SLR(1) Parser Generator
+
+
+
+
+                      Gordon V. Cormack
+
+
+
+1.  Introduction
+
+This  document  describes  the  use  of  the  SLR(1)  parser
+generator   whose   executable   image   is  found  in  file
+descartes:/u/cs444/slr.   This  program  reads  a context-free
+grammar  and  builds the states and lookahead sets necessary
+to implement a shift-reduce parser.  Two forms of output are
+produced:   a  human-readable  listing  of  the  vocubulary,
+grammar,  and state sets.  Any inadequate states are flagged
+in  this  listing.   In  addition,  a table file is  is
+produced  that  contains similar information but can be read
+easily by another program.
+
+The source for the program is in the file slr.c.  You may
+take the source elsewhere and compile it if you like.  You
+may modify the source in whatever way you see fit.  If you
+choose to use LL parsing instead of LR, this program can
+easily be modified to compute the necessary predictor 
+tables instead of LR parse tables.
+
+
+/*      SLR(1) Parser Generator
+        =======================
+
+    Copyright (c)  Gordon V. Cormack  and   R. Nigel Horspool  1985.
+
+    Date of last update:  2 May 1986.
+
+    USAGE:
+                slr  [-c]  [-l]  [-d]  [-w width]  [-t]  [gram]
+
+    OPTIONS:
+
+        -c :    don't reduce number of SLR states by combining shift
+                actions with reduce actions.
+
+        -l :    generate listing of tokens, grammar and recognizer
+                states on the standard output.
+
+        -d :    generate listing of `first', `last' and `follow' sets
+                as computed for the grammar.
+
+        -w :    changes the assumed width of the standard output
+                device from 72 (the default) to the immediately
+                following integer.
+
+        -t :    disables output of machine-readable parsing tables.
+
+        gram :  the name of the file containing the grammar.  If this
+                argument is absent, the grammar is read from the
+                standard input.
+
+    RESULT:
+
+        If the grammar is free of errors and if the `-t' flag is not
+        given, slr parsing tables are generated in a file named
+        `gram.tbl', where `gram' is the name of the input file holding
+        the grammar.  If the grammar was read from the standard input,
+        the tables are written to a file named: `slr.tbl'.
+
+        If the grammar contains errors, diagnostic information is given.
+        Unless the '-l' option forces output of all recognizer states,
+        just the inadequate states are printed.
+*/
+
+
+2.  Program Input
+
+The  input to the SLR generator is a context-free (hopefully
+SLR(1))  grammar.   Terminals  and  non-terminals may be any
+sequence  of  characters delimited by blanks or end-of-line.
+One  replacement  rule  appears  per line in the input file.
+The  first rule defining a particular non-terminal is of the
+form:
+
+   non-terminal  right hand side of rule
+
+
+Subsequent alternatives for the same non-terminal are of the
+form
+
+     |   alternative right hand side
+
+
+The  generator  automatically assigns symbol numbers to each
+terminal  and non-terminal symbol.  Any symbol not appearing
+at the left of a rule is assumed to be a terminal symbol.
+
+     The first rule must have a right-hand side of the form:
+
+     terminal non-terminal terminal
+
+
+
+
+
+
+                      January 15, 1985
+
+
+
+
+                            - 2 -
+
+
+3.  Standard Output
+
+Standard   output  consists  of  three  parts.   First,  the
+vocabulary  is  listed.   Each symbol is numbered.  Terminal
+symbols are prefixed by the digit 0 and non-terminal symbols
+by the digit 1.
+
+     Next  the  grammar  is  listed.   The grammar rules are
+numbered starting from 0.
+
+     Finally,  the  states of the SLR(1) machine are listed.
+First, the items in the state are listed.  An item is of the
+form of a grammar rule with ### indicating the position
+from  the  beginning  of the rule has been recognized.  The
+valid  transitions  are  then listed.  Each transition is of
+the  form  (new  state,  symbol).   Finally,  reductions are
+listed  in  the form (rule to be reduced, lookahead symbol).
+If  any  conflicts  are  detected,  error  messages  will be
+included in the listing of the inadequate state.  If shift-
+reduce optimization is in place (-c flag not specified) 
+there may be combined shift-reduce actions.  A combined
+shift-reduce action involves a transition to an anonymous
+state immediately followed by a reduce action by the rule
+number specified.
+
+4.  The File 
+
+If  there  are  no  errors  in  the grammar, the information
+necessary to build a parser is placed in the table file.
+The first record in the file contains three integers:
+
+     number-of-symbols   number-of-grammar-rules  number-of-
+states
+
+
+For  each symbol, rule, and state the is one subsequent line
+in  the file.  The first symbol, rule, and state is numbered
+0.
+
+     For  each symbol, there is a bit indicating whether the
+symbol is terminal followed by the symbol itself.
+
+     For each rule, the numbers of the symbols making up the
+rules appear in the following format:
+
+   left-side  length-of-right-side  right-side-symbols
+
+
+     For  each  state,  the  line  contains  the  number  of
+transitions  and  reductions,  followed by these actions.  A
+transition is represented by the pair of numbers:
+
+    symbol  S new-state
+
+
+A reduce is represented by the pair of numbers:
+
+    symbol  R rule
+
+
+
+                      January 15, 1985
+
+
+
+
+                            - 3 -
+
+
+A combined shift-reduce is denoted:
+
+    symbol  * rule
+
+5.  An example
+
+5.1.  Standard input
+
+ s            bof expression eof
+ expression   term
+            | expression + term
+            | expression - term
+ term         factor
+            | term * factor
+            | term / factor
+ factor       id
+            | ( expression )
+            | constant
+            | id ** factor
+            | ( expression ) ** factor
+            | constant ** factor
+
+5.2.  Standard output
+
+
+Terminal Symbols:
+
+           1: bof   3: eof   5: +   6: -   8: *   9: /   10: id   11: (
+           12: )   13: constant   14: **
+
+Non-Terminal Symbols:
+
+           0: s   2: expression   4: term   7: factor
+
+Production Rules:
+
+          0.    s := bof expression eof
+          1.    expression := term
+          2.    expression := expression + term
+          3.    expression := expression - term
+          4.    term := factor
+          5.    term := term * factor
+          6.    term := term / factor
+          7.    factor := id
+          8.    factor := ( expression )
+          9.    factor := constant
+         10.    factor := id ** factor
+         11.    factor := ( expression ) ** factor
+         12.    factor := constant ** factor
+
+State 0:
+    Kernel Items:
+        [[ 0.  s  ::=  bof  ###  expression eof ]]
+    Shift Transitions:
+            to state 5 on expression    to state 4 on term
+            to state 3 on id    to state 2 on (
+            to state 1 on constant
+    Shift-Reduces:
+            by rule 4 on factor
+
+State 1:
+    Kernel Items:
+        [[ 12.  factor  ::=  constant  ###  ** factor ]]
+        [[ 9.  factor  ::=  constant  ###  ]]
+    Shift Transitions:
+            to state 6 on **
+    Reductions:
+            by rule 9 on eof + - * / )
+
+State 2:
+    Kernel Items:
+        [[ 11.  factor  ::=  (  ###  expression ) ** factor ]]
+        [[ 8.  factor  ::=  (  ###  expression ) ]]
+    Shift Transitions:
+            to state 7 on expression    to state 4 on term
+            to state 3 on id    to state 2 on (
+            to state 1 on constant
+    Shift-Reduces:
+            by rule 4 on factor
+
+State 3:
+    Kernel Items:
+        [[ 10.  factor  ::=  id  ###  ** factor ]]
+        [[ 7.  factor  ::=  id  ###  ]]
+    Shift Transitions:
+            to state 8 on **
+    Reductions:
+            by rule 7 on eof + - * / )
+
+State 4:
+    Kernel Items:
+        [[ 6.  term  ::=  term  ###  / factor ]]
+        [[ 5.  term  ::=  term  ###  * factor ]]
+        [[ 1.  expression  ::=  term  ###  ]]
+    Shift Transitions:
+            to state 10 on *    to state 9 on /
+    Reductions:
+            by rule 1 on eof + - )
+
+State 5:
+    Kernel Items:
+        [[ 3.  expression  ::=  expression  ###  - term ]]
+        [[ 2.  expression  ::=  expression  ###  + term ]]
+        [[ 0.  s  ::=  bof expression  ###  eof ]]
+    Shift Transitions:
+            to state 12 on +    to state 11 on -
+    Shift-Reduces:
+            by rule 0 on eof
+
+State 6:
+    Kernel Items:
+        [[ 12.  factor  ::=  constant **  ###  factor ]]
+    Shift Transitions:
+            to state 3 on id    to state 2 on (
+            to state 1 on constant
+    Shift-Reduces:
+            by rule 12 on factor
+
+State 7:
+    Kernel Items:
+        [[ 11.  factor  ::=  ( expression  ###  ) ** factor ]]
+        [[ 8.  factor  ::=  ( expression  ###  ) ]]
+        [[ 3.  expression  ::=  expression  ###  - term ]]
+        [[ 2.  expression  ::=  expression  ###  + term ]]
+    Shift Transitions:
+            to state 12 on +    to state 11 on -    to state 13 on )
+
+State 8:
+    Kernel Items:
+        [[ 10.  factor  ::=  id **  ###  factor ]]
+    Shift Transitions:
+            to state 3 on id    to state 2 on (
+            to state 1 on constant
+    Shift-Reduces:
+            by rule 10 on factor
+
+State 9:
+    Kernel Items:
+        [[ 6.  term  ::=  term /  ###  factor ]]
+    Shift Transitions:
+            to state 3 on id    to state 2 on (
+            to state 1 on constant
+    Shift-Reduces:
+            by rule 6 on factor
+
+State 10:
+    Kernel Items:
+        [[ 5.  term  ::=  term *  ###  factor ]]
+    Shift Transitions:
+            to state 3 on id    to state 2 on (
+            to state 1 on constant
+    Shift-Reduces:
+            by rule 5 on factor
+
+State 11:
+    Kernel Items:
+        [[ 3.  expression  ::=  expression -  ###  term ]]
+    Shift Transitions:
+            to state 14 on term    to state 3 on id    to state 2 on (
+            to state 1 on constant
+    Shift-Reduces:
+            by rule 4 on factor
+
+State 12:
+    Kernel Items:
+        [[ 2.  expression  ::=  expression +  ###  term ]]
+    Shift Transitions:
+            to state 15 on term    to state 3 on id    to state 2 on (
+            to state 1 on constant
+    Shift-Reduces:
+            by rule 4 on factor
+
+State 13:
+    Kernel Items:
+        [[ 11.  factor  ::=  ( expression )  ###  ** factor ]]
+        [[ 8.  factor  ::=  ( expression )  ###  ]]
+    Shift Transitions:
+            to state 16 on **
+    Reductions:
+            by rule 8 on eof + - * / )
+
+State 14:
+    Kernel Items:
+        [[ 6.  term  ::=  term  ###  / factor ]]
+        [[ 5.  term  ::=  term  ###  * factor ]]
+        [[ 3.  expression  ::=  expression - term  ###  ]]
+    Shift Transitions:
+            to state 10 on *    to state 9 on /
+    Reductions:
+            by rule 3 on eof + - )
+
+State 15:
+    Kernel Items:
+        [[ 6.  term  ::=  term  ###  / factor ]]
+        [[ 5.  term  ::=  term  ###  * factor ]]
+        [[ 2.  expression  ::=  expression + term  ###  ]]
+    Shift Transitions:
+            to state 10 on *    to state 9 on /
+    Reductions:
+            by rule 2 on eof + - )
+
+State 16:
+    Kernel Items:
+        [[ 11.  factor  ::=  ( expression ) **  ###  factor ]]
+    Shift Transitions:
+            to state 3 on id    to state 2 on (
+            to state 1 on constant
+    Shift-Reduces:
+            by rule 11 on factor
+5.3.  Tbl output
+
+
+15 13 17
+1 s
+0 bof
+1 expression
+0 eof
+1 term
+0 +
+0 -
+1 factor
+0 *
+0 /
+0 id
+0 (
+0 )
+0 constant
+0 **
+0 3 1 2 3
+2 1 4
+2 3 2 5 4
+2 3 2 6 4
+4 1 7
+4 3 4 8 7
+4 3 4 9 7
+7 1 10
+7 3 11 2 12
+7 1 13
+7 3 10 14 7
+7 5 11 2 12 14 7
+7 3 13 14 7
+6 2 S5 4 S4 7 *4 10 S3 11 S2 13 S1
+7 3 R9 5 R9 6 R9 8 R9 9 R9 12 R9 14 S6
+6 2 S7 4 S4 7 *4 10 S3 11 S2 13 S1
+7 3 R7 5 R7 6 R7 8 R7 9 R7 12 R7 14 S8
+6 3 R1 5 R1 6 R1 8 S10 9 S9 12 R1
+3 3 *0 5 S12 6 S11
+4 7 *12 10 S3 11 S2 13 S1
+3 5 S12 6 S11 12 S13
+4 7 *10 10 S3 11 S2 13 S1
+4 7 *6 10 S3 11 S2 13 S1
+4 7 *5 10 S3 11 S2 13 S1
+5 4 S14 7 *4 10 S3 11 S2 13 S1
+5 4 S15 7 *4 10 S3 11 S2 13 S1
+7 3 R8 5 R8 6 R8 8 R8 9 R8 12 R8 14 S16
+6 3 R3 5 R3 6 R3 8 S10 9 S9 12 R3
+6 3 R2 5 R2 6 R2 8 S10 9 S9 12 R2
+4 7 *11 10 S3 11 S2 13 S1

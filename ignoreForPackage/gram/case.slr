@@ -1,0 +1,12 @@
+<case_statement> case <expression> is <case_alternative_sequence> end case ;
+
+<case_alternative_sequence> <case_alternative_sequence> <case_alternative>
+| <case_alternative>
+
+<case_alternative> when <choice_sequence> => <statement_sequence>
+
+<choice_sequence> <choice_sequence> | <choice>
+| <choice>
+
+<choice> <expression>
+| others

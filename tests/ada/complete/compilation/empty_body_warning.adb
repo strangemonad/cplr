@@ -1,0 +1,1 @@
+-- Ada source bodies can contain 0 compilation units.

@@ -1,0 +1,10 @@
+<identifier_sequence> <identifier_sequence> , identifier
+| identifier
+
+
+<initialization_option> := <expression>
+|
+
+<identifier_option> identifier
+|
+

@@ -1,0 +1,27 @@
+<subprogram_declaration> <subprogram_specification> ;
+
+<subprogram_specification> procedure identifier <formal_part_option>
+| function <designator> <formal_part_option> return <expression>
+
+<formal_part_option> <formal_part>
+|
+
+<formal_part> ( <parameter_specification_sequence> )
+
+<parameter_specification_sequence> <parameter_specification_sequence> ; <parameter_specification>
+| <parameter_specification>
+
+<parameter_specification> <identifier_sequence> : <mode> <expression> <initialization_option>
+
+<mode> in
+| out
+| in out
+|
+
+<designator> identifier
+| string_literal
+
+<subprogram_body> <subprogram_specification> is <declaration_list> begin <statement_sequence> <exception_part_option> end <designator_option> ;
+
+<designator_option> <designator>
+|

@@ -1,0 +1,57 @@
+Introduction
+============
+
+
+CPRL is an exploration in the theory and practice of building compilers. Compiling a subset of the Ada programming language is merely an artifact of an application of ideas explored and implemented by CPRL. In fact, most of the implementation deals with issues that are independent of both the source language and target platform (referred to in GCC parlance as the target triple or more recently the target quadruple http://gcc.gnu.org/ml/gcc-help/2003-08/msg00169.html [#]_). One of our hopes is that supporting new languages will actually be relatively easy and supporting new platforms will not be an excessive amount of work [#]_.
+
+
+.. [#] The CPU_TYPE part of the GCC target specification is still not enough to disambiguate among instruction set architecture subtleties that may be of interest to a compiler's code generator. Suppose a compiler is given a target of i686-pc-linux-gnu. Should the compiler emit code that uses the EMT_64 extensions? Is OK to use SSE3 or limit the optimizations to SSE2?
+
+.. [#] With modern CPU architectures making heavy use of out-of-order execution there is much onus placed on the compiler to allocate registers and order instructions such as to maximize the processor's resources. The burden placed on the compiler means that only so many optimizations can be performed in an architecture-agnostic fashion.
+
+
+Design
+------
+
+Several design decisions pervade CPLR:
+
+True to UNIX culture, every single component of a system should only serve one purpose and do that task really well. This is emphasized in "The Art of Unix Programming" by Eric Steven Raymond http://www.faqs.org/docs/artu but has clearly been articulated by countless more beginning with Ken Thompson's vision of a "small but capable system."
+
+The bulk of CPLR is not the compiler itself but the set of libraries that are useful in building a compiler. The idea of producing a set of libraries useful for building compiler like tools rather than a monolithic compiler is heavily influenced by Chris Lattner's graduate work that has culminated in the LLVM project http://llvm.org/ [#]_. Viewed from a more of a pedagogical angle, many of the concepts that emerge into what we call a compiler can be well explained, explored, and understood in isolation or abstraction [#]_.
+
+.. [#] Chris Lattner is a very timid and humble person and would probably shy away from being named next to Ken Thompson and Donald Knuth. Nonetheless, his work has played  important role in shaping current trends of compilers and compiler hackers in the wild.
+
+.. [#] The human mind has a very limited short term capacity. The primary mechanism for dealing with a crippling amount of short term memory is abstraction. The classic example of this is phone numbers, which are much easier to remember than arbitrary 10 digit numbers because of a psychological phenomenon called chunking. Chunking is just an application of our mind's ability to abstract structure. The structure of phone numbers originated from work done at Bell Labs as a result of George A. Miller's well known 1956 paper "The Magical Number Seven, Plus or Minus Two: Some Limits on our Capacity for Processing Information." To give another example, people have no trouble driving cars by pressing a pedal and turning a wheel while never giving an shred of thought to how those components affect the dynamics and chemical reactions involved in "actually" driving a car.
+
+These design philosophies afford many advantages. As mentioned earlier, new languages and new platforms are relatively easy to support. Exploring non-traditional compilation pipelines, for example parser-less compilation, is also easy. GCC's single mindedness is a source of frustration for many programmers and the driving factor behind many ad-hoc tools; even though GCC has intimate knowledge of many languages not much can be done with it other than compiling programs. An Ada compiler is but one application of the CPLR libraries; possible applications need not even be compilers at all. A few examples include syntax highlighting or live marking of incorrect code in an editor.
+
+That being said, CPLR is not exhaustive in its implementation of concepts. For example it makes little sense to implement more than one type of LL, LR, SLR, or LALR parser. Because of the separation of concerns though, if a reader desires to know more about a different form of parsing it would be rather straight forward to implement a different parser variant while still re-using the test suite and all other components as is. Likewise you may not even want to use Ada as the source language.
+
+Mentioning sources of influence on compiler design without mentioning GCC is hard to do. GCC deserves credit in what it has accomplished socially for the free software movement. GCC's primary influence on CPLR is that a single compiler driver can be used for various source languages. Though CPLR only implements a subset of Ada, nothing in its design restricts it to a single source language. Beyond that, there are many aspects of GCC that can be improved upon. For example, there will be no attempt at trying to be compatible with GCC's command line options because most make no sense.
+
+
+Python
+------
+
+CPLR is implemented in Python. We will try as much as possible to adhere to the Python coding standards - "PEP 8 -- Style Guide for Python Code" http://www.python.org/dev/peps/pep-0008/.
+
+Python presents several advantages both practically and pedagogically. Python is a very rich language and comes ready with many data-types and programming constructs. Most of the Python style has evolved embracing a sense of flexibility of expression. You are not locked in to any particular style, for example object-orientation with Java, but rather can use whatever style is most practical. In a compiler there are modules that are well suited to be described as objects while others are purely procedural and others still are purely algorithmic in nature and are well suited to functional styles of expression. Since Python runs on many platforms writing a compiler in Python inherently means you are writing a cross-compiler. Furthermore, Python code can have both a prosaic and mathematical expressiveness to it, which is very well suited for conveying concepts.
+
+Python doesn't come without its drawbacks though. Notably execution speed can possibly be an issue since Python is interpreted. It remains to be seen just how serious of an issue it turns out to be since there is always the option of writing performance critical sections in C. More interesting to the topic of compiler construction, perhaps, is that writing a bootstrapping compiler, for Ada in the case of CPLR, is not possible with Python.
+
+
+Literate Style
+--------------
+
+CPLR is even less of a compiler than it is a document explaining various concepts at the core of computer science.  Some argue that students do not really understand computer science until they understand compilers (http://steve-yegge.blogspot.com/2007/06/rich-programmer-food.html), this document merely reviews many topics core to computer science by applying them to a compiler. How better to explain concepts than through narrative [#]_. For the purpose of example, the concepts are applied in this document as a compiler for a subset of the Ada programing language. While CPLR is not written in a traditional literate programming style it is influenced by Donald Knuth's idea of the program as a narrative http://www-cs-faculty.stanford.edu/~knuth/lp.html. You may be reading this text directly in the source tree, in which case the code is a live, runnable artifact. Likewise, you may be reading this text in a compiled document, in which case the document contains everything you need to create a working compiler for the subset of the Ada language we are interested in [#]_.
+
+.. [#] Oral tradition and narrative are as old as humanity itself. Possibly the only better learning tool is experience itself unless of course one doesn't have enough experience to start doing.
+
+.. [#] In the practice of giving credit where it is due, the desire to produce a document that a compiler can be crafted from was also heavily influenced by "Physically Based Rendering: From Theory to Implementation" by Matt Pharr and Greg Humphreys when observing first hand what an incredible learning tool a text written in literate programming style can be.
+ 
+
+CPLR differs from traditional literate programming style in two significant ways. First, CPLR is written as prosaic source and later converted into a narrative document rather than as narrative document woven into a compilable source code. On many levels, it makes more sense to lay out a source tree with files that mimic the conceptual modules and object hierarchy of the system. Second, conversion from source to document is kept to a minimal amount of fuss. There is no code "weaving" or code block rearranging. The source code tree is walked in a manually defined order. Each file is included as a whole. Of course, source code and comments are prettied up so that the document reads more like a document than a listing of source code. Since this document represents the entirety of the source tree and this document is generated by code found in the source tree, you guessed it, there is a chapter that details how this is done.
+
+Now, follow along as we build a compiler [#]_.
+
+.. [#] Due to time constraints the entire compiler wasn't in a state that lent itself to conversion into a narrative document in time for submission. The rest of this document will contain some text extracted from some of the more polished sources. Where certain source modules didn't have proper documentation and formating they are simply described.

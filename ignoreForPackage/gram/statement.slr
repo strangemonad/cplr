@@ -1,0 +1,30 @@
+<statement_sequence> <statement_sequence> <statement>
+| <statement>
+
+<statement> <assignment_statement>
+| <exit_statement>
+| <return_statement>
+| <raise_statement>
+| <if_statement>
+| <case_statement>
+| <loop_statement>
+| <block_statement>
+| <pragma>
+| <expression_statement>
+
+<expression_statement> <expression> ;
+
+<assignment_statement> <expression> := <expression> ;
+
+<exit_statement> exit <expression> ;
+| exit <expression> when <expression> ;
+
+<return_statement> return ;
+| return <expression> ;
+
+<raise_statement> raise ;
+| raise <expression> ;
+
+<statement_identifier_option> identifier :
+|
+

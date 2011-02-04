@@ -1,0 +1,57 @@
+The tests in this directory correspond to issues pertaining to the compilation
+of Ada programs as outlined in chapter 10 of the Ada 83 LRM.
+
+Note: The Ada specification does not impose any restrictions on the format of
+the program source.
+
+From the "Annotated Ada 2005 Reference Manual" - Section 10.1:
+
+"2.a
+
+Implementation defined: The representation for a compilation.
+
+2.b
+
+Ramification: Some implementations might choose to make a compilation be a
+source (text) file. Others might allow multiple source files to be automatically
+concatenated to form a single compilation. Others still may represent the source
+in a nontextual form such as a parse tree. Note that the RM95 does not even
+define the concept of a source file."
+
+Gnat is much stricter on this issue but doesn't provide a formal specification
+of what it considers a valid source file. In particular Gnat only allows 1
+compilation unit per file and file names must match the compilation unit.
+
+From the GNAT User's Guide for Native Platforms / Unix and Windows - Section 2.3
+File naming rules:
+
+"The default file name is determined by the name of the unit that the file
+contains. The name is formed by taking the full expanded name of the unit and
+replacing the separating dots with hyphens and using lowercase for all letters."
+
+The Gnat naming scheme can be altered via compiler flags, pragmas, and a variety
+of helper tools provided by the Gnat suite.
+
+CPLR specifics of implementation defined compilation features.
+
+For simplicity, CPLR will accept Ada program sources in multiple formats, not
+just a text file. Allowing multiple compilation units per file allows a compiler
+to be implemented more simply at first by including package specifications and
+package bodies in the same file (removing an initial need for search paths) or
+declaring all the units of a program in a single file (removing an initial need
+for a binder). For example, the compiler could be invoked programatically by
+manually specifying the source language and providing the source as a string.
+Likewise, the compiler can be invoked on .ads and .adb files.
+
+XXX comments about .ada, .ads, and .adb.
+
+The source contains zero or more valid compilation units. Since empty
+compilations aren't of much use the compiler should issue a warning but not an
+error.
+
+The Ada language does not specify a main entry point of execution. The main
+entry point is specified when the program is bound. Since a separable
+compilation unit might have multiple subprograms the main procedure or function
+can be specified at bind time. As a convenience, if there is only 1 top-level
+subprogram the binder will infer that it is meant to be the entry point of the
+program.

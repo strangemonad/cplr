@@ -1,0 +1,14 @@
+
+Unsupported or Incomplete Features
+=====================================
+
+- tasks
+- generics
+- nested program units?
+- Exceptions?
+- separate compilation and secondary units?
+- look at syntax.py
+
+- number literals and based literals
+- escaping " in string literals
+- operator oveloading

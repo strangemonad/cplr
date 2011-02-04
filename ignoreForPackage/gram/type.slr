@@ -1,0 +1,24 @@
+<type_declaration> <complete_type_declaration>
+| <incomplete_type_declaration>
+| <private_type_declaration>
+
+<complete_type_declaration> type identifier <formal_part_option> is <type_definition> ;
+
+<incomplete_type_declaration> type identifier <formal_part_option> ;
+
+<private_type_declaration> type identifier <formal_part_option> is private ;
+
+<type_definition> <enumeration_type_definition>
+| <array_type_definition>
+| <record_type_definition>
+| <access_type_definition>
+
+<enumeration_type_definition>  ( <enumeration_literal_sequence> )
+
+<enumeration_literal_sequence> <enumeration_literal_sequence> , <enumeration_literal>
+| <enumeration_literal>
+
+<enumeration_literal> identifier
+| character_literal
+
+<access_type_definition> access <expression>

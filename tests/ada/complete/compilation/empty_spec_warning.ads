@@ -1,0 +1,1 @@
+-- Ada source specifications can contain 0 compilation units.

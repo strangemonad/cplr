@@ -1,0 +1,12 @@
+Test Cases
+
+Tests are divided by major features. The filename convention 
+is feature_correct.ad[bs] and feature_incorrect.ad[bs].
+
+Where the file name isn't sufficiently self-descriptive comments are added to
+the individual test cases.
+
+TODO:
+
+There isn't a test suite harness yet. But then again, there isn't a working
+compiler yet so an automated test harness wouldn't be of much use.

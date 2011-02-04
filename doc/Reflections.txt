@@ -1,0 +1,45 @@
+
+Reflections
+==============
+
+
+The compiler API
+------------------
+
+We would say that the compiler API is one of CPLR's strongest points.
+
+Writing the Compiler API in a way that returns intact result objects that can be converted to a string turns out to be very powerful. If you step back from viewing the compiler as a whole - a unit whose sole purpose is to convert a source file on disk to an executable program on disk - you realize that you have an entity that knows how to translate program sources into several different forms.
+
+You can then apply the compiler to a variety of situations. In fact, ``driver.py`` is nothing more than an application that prints issues to standard out and writes the string value of the compilation result to a file. It would be  trivial (on the order of about 100 lines of Python) to instead invoke the compiler to stop after parsing and interpret the issues to do error highlighting in an IDE. In fact ``compilertools/pretty_print.py`` and ``driver.py`` already take a stab at this in order to print compiler errors and warnings to the user. The flexibility doesn't stop there. Though the object returned can be converted to a string but it is a full Python object. If you ask the compiler to stop after parsing, the result object *is* the AST where each node is a subtype of the Node object defined in ``compilertools/parse/tree.py``. Similarly, if you stop after symbols have been collected you will have the AST with each node annotate with attribute values and an actual Python dictionary object mapping symbol names to type information. It doesn't take much to realize that without changing the compiler or any of its libraries in any way you can build tools that perform more in depth semantic analysis, for example checking for potential buffer overruns (though this is less of a concern in Ada).
+
+Likewise, there is nothing set in stone about the compiler needing to start from a plain source file. The compiler simply wraps a pipeline of translator objects. The API could be augmented to not only allow stopping after any phase but also starting at any phase by taking an array slice of the pipeline. In fact, ``util/pipeline.py`` is already designed with the in mind. The most obvious example is support for pre-compiled headers or more generally, distributed compilation. You could persist the intermediate result of any translation phase to disk and pick up at that point later on. A more involved example would be supporting program translation at the AST level. You build a tool that invokes the compiler to get an AST, does whatever refactorings it needs and then feeds the AST back into the compiler to get a running program. This example would require a little more work to support in a generic way since the current AST is very Ada specific. Another example making use of such a feature would be distributed compilation.
+
+
+A compiler as a set of libraries
+----------------------------------
+
+By far the most difficult part of designing a compiler as a set of general purpose libraries that, for the most part, don't make any language or platform assumptions is designing the top level user interface. In the case of CPLR this is "simply" a command line. This surely isn't the first time the idea of a multi-lingual, multi-platform compiler has been tossed around. Of course we didn't actually attempt to implement different language front ends or different platform code generators. The design was always conscious, though, to keep things generic and keep language and platform specifics isolated and collected. One of the nice parts about the experience is the extra thought you must give to different command line options for example. Because the different phases are collected and put together on the fly only after language and platform have been inferred, different options may not even apply. Instead, you must think through what the generic top-level operations are. A good example is that no matter what language or platform is being compiled for the notion of stopping compilation after a certain phase is almost universal. So instead of taking the GCC approach (-s, -c, etc.) CPLR simply has --stop-after="named-phase". The value is kept in an environment and only evaluated by the modules that know about constructing the pipeline. This also has the advantage that it's simpler to read and remember what the compiler is doing when invoked.
+
+It may be worth briefly mentioning localization of the command line interface. No real design effort was made to internationalize any of the compiler libraries. for example, error types hard code english strings. If we were to want to internationalize the compiler, a similar approach to the command line arguments would have to be taken. Because the set of libraries that make up the compiler is dynamically bound, each library would have to provide it's own localized strings and error messages. You couldn't simply return error codes to the caller since the number and value of such error codes is open ended.
+
+
+Compiler compilers and duplication of code
+--------------------------------------------
+
+Originally, proceeding by creating lexical and syntactic language definitions that made reference to separately defined Python Node and Token types seemed to be a straightforward approach. The language definitions could be kept concise and separate from the Python cruft of defining types, their initializers, and attributes. Additionally, creating visitors as separate entities clearly expressed the nature of each transformation. Towards the end of the experience; after you've jumped countless times between ``grammar.py`` and ``nodes.py``, after having written several visitors that, while they do in fact clearly express their transformations, come with the tedium of duplication; you start to see the allure of compiler compilers that allow you to annotate a grammar with rules expressed in the target language. It would be very convenient for the definitions in ``nodes.py`` to be generable from the grammar. Likewise, while we used the unimplemented visitor methods to report unsupported language features in a finished product the assurance of knowing there are no unimplemented methods is a greater win. Otherwise you must rely on a very complete test coverage to generate all possible classes of parse trees such that all Node types will be visited.
+
+
+Parallelizing development tasks
+--------------------------------
+
+Another challenge with starting a compiler from scratch for the first time is figuring out just how to parallelize development and keep each other unblocked. The experience of developing a compiler is very different from, say, writing an OS at least until there is enough of the compiler present to get off the ground. It is fairly straight forward to agree upon the set of lexical tokens that allow parallel development of the lexer and parser. However, the set of parse tree nodes is highly dependent on the grammar so it is hard to start working on later transformations. Likewise, without having a clear picture on what the AST would end up looking like, it was hard to come up with any meaningful intermediate form. Part of the problem was in fact that the solutions, while partially outlined in class and texts, were unknowns for the most part. As we made progress the API for each phase became clearer.
+
+
+ASTs and program transformations
+--------------------------------
+
+One interesting avenue of abstract syntax trees is program transformations (for example: some of the work being done at Sun on Jackpot). The problem with transforming at the AST level is that it is very language specific.
+
+along the lines of being language agnostic, one part of compiler design that has piqued our interest is the feasibility of making the AST less language specifc by extracting common language elements (eg: statements, expressions, functions, assignment...). Where do you draw the line? Is it in fact possible to generically say that transformation alpha on assignments is valid in any language. Alternatively, you could convert languages to an intermediate form and do the transformations at the level. This is similar to an optimizing JIT and approaches like Java bytecode, Microsoft's CLR, or LLVM. At this level, it seems very cumbersome, if intractable in certain situations, to support language level style refactoring. Often times there is not enough information contained at the IR level to apply a reverse transformation. Alternatively, you could design a completely separate high-level representation that is language agnostic. A high level VM if you will. In it would could define a mapping to and from various source languages and a set of well defined features the environment supports, functions, objects, abstract evaluation.
+
+So how would you go about writing a symbol renaming, re-factoring algorithm without rewriting it for each language you're interested it? We don't really have concrete any concrete solutions. We simply wanted to finish off by mentioning one of the places where this whole experience has taken (left) us.
