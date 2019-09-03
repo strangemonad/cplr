@@ -1,3 +1,8 @@
+# Post-Note:
+
+9/2019 This compiler framework was part of my compiler course final project. The repo is kept here mainly for reference. The 2 main goals were 1) to explore a library-based software architecture for building compiler frontends. LLVM had just started to prove out that this could work for backends and the state of front-end tooling was mostly disconnected scanner generator tools and parser generator tools that weren't designed to work as a single unit. 2) Write the code in a heavily documented style such that the entire code base could be rendered into a pdf book that you could read sequentially and type in the code snippets as you went and what you end up with is a working compiler (This was inspired by the amazing "Physically Based Ray Tracing" book"). At the time I called this style "reverse literate programing" because the source code in the repo is structured just like you'd expect to find it (there's no "weaving" step to take something written in literate style and compile it into a runnable program).
+
+
 Source-tree layout
 ------------------
 
